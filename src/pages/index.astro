@@ -13,7 +13,6 @@ const year = new Date().getFullYear();
 		/>
 		<meta name="theme-color" content="#ffffff" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
 		<title>Lukas Becker | Computer & Software Engineering</title>
 	</head>
 	<body>
@@ -92,7 +91,7 @@ const year = new Date().getFullYear();
 					<p>
 						My experience includes C++, MATLAB, Simulink, Linux, embedded communication
 						protocols, circuit debugging, soldering, oscilloscopes, digital multimeters,
-						SolidWorks, and Onshape. Outside the classroom, I am a Pep Band member and
+						SolidWorks, and Onshape. Outside the classroom, I am a dedicated Pep Band member and
 						Pre-Orientation Leader, and I have completed more than 24 hours of Honors
 						Program service at the North Country Children's Museum.
 					</p>
@@ -109,9 +108,14 @@ const year = new Date().getFullYear();
 						I am interested in internship opportunities involving embedded systems,
 						computer engineering, software development, or robotics.
 					</p>
-					<a class="contact-link" href="mailto:LukasTBecker@gmail.com">
-						LukasTBecker@gmail.com
-					</a>
+					<div class="contact-links">
+						<a class="contact-link" href="mailto:LukasTBecker@gmail.com">
+							LukasTBecker@gmail.com
+						</a>
+						<a class="contact-link" href="https://github.com/beckerlt2028" target="_blank" rel="noreferrer">
+							GitHub · beckerlt2028 <span aria-hidden="true">↗</span>
+						</a>
+					</div>
 				</div>
 			</section>
 		</main>
@@ -259,6 +263,13 @@ const year = new Date().getFullYear();
 		color: #181818;
 		font-weight: 650;
 		border-bottom: 1px solid currentColor;
+	}
+
+	.contact-links {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
 	}
 
 	footer {

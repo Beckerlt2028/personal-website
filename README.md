@@ -55,7 +55,6 @@ Run each command from the project directory.
 ```text
 .
 ├── public/
-│   ├── favicon.ico
 │   └── favicon.svg
 ├── src/
 │   └── pages/
