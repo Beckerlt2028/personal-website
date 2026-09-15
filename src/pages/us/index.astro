@@ -1,0 +1,67 @@
+---
+import '../../styles/us.css';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#742941" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Just us</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div id="preview-banner" hidden>Local preview · sample accounts · changes disappear when the preview restarts.
+      <a id="preview-switch" href="?previewPerson=other">Preview as your person</a>
+    </div>
+    <header class="topbar">
+      <a class="wordmark" href="/us/">Just us<span aria-hidden="true">.</span></a>
+      <div class="toplinks"><span class="private-label">A place for two</span><a id="sign-out" href="/us/logout">Sign out</a></div>
+    </header>
+    <main id="main">
+      <div class="welcome"><p class="eyebrow">A little closer, wherever we are</p><h1>Meet me here.</h1></div>
+      <div class="section-nav" role="tablist" aria-label="Our space">
+        <button id="letters-tab" role="tab" aria-controls="letters-panel" aria-selected="true">Open when…</button>
+        <button id="games-tab" role="tab" aria-controls="games-panel" aria-selected="false" tabindex="-1">Game night</button>
+      </div>
+      <div id="notice" class="notice" role="status" aria-live="polite">Opening our space…</div>
+      <section id="letters-panel" role="tabpanel" aria-labelledby="letters-tab">
+        <div class="section-heading"><div><p class="eyebrow">Little things, kept for you</p><h2>The letter box</h2></div><button class="primary" id="compose" disabled>+ Write a letter</button></div>
+        <div class="filters" aria-label="Letter folders"><button id="inbox-filter" aria-pressed="true">For you</button><button id="outbox-filter" aria-pressed="false">Written by you</button></div>
+        <div id="letters" class="letters" aria-live="polite"></div>
+        <div id="letter-empty" class="empty" hidden><span class="heart" aria-hidden="true">♡</span><h3 id="empty-title">Something to look forward to.</h3><p id="empty-copy">Letters shared with you will be waiting here, ready for the right moment.</p></div>
+        <aside class="inspiration"><div><p class="eyebrow">Not sure where to start?</p><h3>There’s a letter for that.</h3></div><div class="prompts"><button data-prompt="you miss me" disabled>You miss me</button><button data-prompt="you need a little courage" disabled>You need a little courage</button><button data-prompt="you need a laugh" disabled>You need a laugh</button></div></aside>
+      </section>
+      <section id="games-panel" role="tabpanel" aria-labelledby="games-tab" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Your move, my favorite person</p><h2>Our table</h2></div><button id="refresh-game" class="secondary" disabled>Refresh table</button></div>
+        <details class="rules"><summary>Tile rummy · how we play</summary><p>Two players. 14 tiles each. Make runs of consecutive numbers in one color, or groups of the same number in 3 or 4 different colors. Your first play must total at least 30 points from your own rack, leaving existing sets alone.</p><p>After your first play, rearrange the table as much as you like. Every table tile must end up in a valid set, and you must add at least one of your own. If you can’t play, draw one tile and end your turn. Empty your rack to win.</p><p>Our first version uses 104 numbered tiles, with no jokers or timer. If the pile is empty and both players pass, the lowest remaining tile total wins. Turns are saved; unfinished rearrangements stay on this screen until you submit or reset them.</p></details>
+        <div class="game-bar"><p id="game-status" aria-live="polite">Opening the table…</p><button class="primary" id="start-game" hidden>Start a game</button><button class="primary" id="join-game" hidden>Take your seat</button></div>
+        <div id="game-surface" hidden>
+          <div class="table-meta"><span id="opponent-count"></span><span id="pile-count"></span></div>
+          <div id="board" class="board" aria-label="Shared table"></div>
+          <div id="turn-controls" class="turn-controls"><button class="secondary" id="new-set">New set with selected tiles</button><button class="quiet" id="reset-turn">Reset my changes</button></div>
+          <div class="rack-heading"><h3>Your rack <span id="rack-count"></span></h3><button id="sort-rack" class="quiet">Sort by number</button></div>
+          <p class="hint" id="rack-hint">Select tiles, then move them to a new or existing set. Select a table tile to move it.</p>
+          <div id="rack" class="rack" aria-label="Your tiles"></div>
+          <div class="game-actions"><span id="selection-count" role="status"></span><div><button id="draw-tile" class="secondary">Draw & end turn</button><button id="play-turn" class="primary">Finish my turn</button></div></div>
+        </div>
+      </section>
+    </main>
+    <footer>Same us. Different places.<span aria-hidden="true">♡</span></footer>
+    <dialog id="composer" aria-labelledby="composer-title">
+      <div class="dialog-header"><h2 id="composer-title">A little letter.</h2><button class="close" id="close-composer" aria-label="Close letter editor">×</button></div>
+      <form id="letter-form">
+        <label for="letter-title">Open when…</label><input id="letter-title" name="title" maxlength="100" placeholder="you miss me" required />
+        <label for="letter-body">Your words</label><textarea id="letter-body" name="body" rows="10" maxlength="8000" placeholder="Start anywhere. It only needs to sound like you." required></textarea>
+        <p class="hint">Drafts are only visible to you. Once shared, a letter stays as you wrote it.</p>
+        <p id="save-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button class="secondary" type="submit" value="draft">Save draft</button><button class="primary" type="submit" value="shared">Seal & share</button></div>
+      </form>
+    </dialog>
+    <dialog id="reader" class="reader" aria-labelledby="reader-title"><div class="dialog-header"><p class="eyebrow">A letter, just for you</p><button class="close" id="close-reader" aria-label="Close letter">×</button></div><h2 id="reader-title"></h2><div id="reader-body"></div><p id="reader-from" class="reader-from"></p><button id="edit-draft" class="secondary" hidden>Keep writing</button></dialog>
+    <script src="../../scripts/us.ts"></script>
+  </body>
+</html>

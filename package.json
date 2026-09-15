@@ -9,6 +9,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "preview:us": "node scripts/preview-us.mjs",
+    "test:us": "node --test tests/us.test.mjs",
     "astro": "astro"
   },
   "dependencies": {

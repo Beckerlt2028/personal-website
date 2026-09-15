@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "personal-website",
+  "account_id": "8e5cf619c3693a0077a37d048cbaabdc",
+  "main": "server/worker.mjs",
+  "compatibility_date": "2026-09-15",
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "lukastbecker.com", "custom_domain": true },
+    { "pattern": "www.lukastbecker.com", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/us", "/us/*"]
+  },
+  "d1_databases": [{
+    "binding": "US_DB",
+    "database_name": "just-us",
+    "database_id": "bb9f3a81-5322-45e9-8e84-8878dbc0f526",
+    "migrations_dir": "migrations"
+  }],
+  "observability": { "enabled": true }
+}

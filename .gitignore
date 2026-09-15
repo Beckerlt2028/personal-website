@@ -16,6 +16,14 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.*
+!.env.example
+.dev.vars*
+.wrangler/
+wrangler.us.local.jsonc
+private-data/
+*.sqlite
+*.sqlite-*
 
 # macOS-specific files
 .DS_Store
