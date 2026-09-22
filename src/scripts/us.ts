@@ -169,6 +169,15 @@ window.addEventListener('beforeunload', e => { if (dirty || el<HTMLDialogElement
 async function init() {
   try {
     const identity = await request('me'); me = identity.me; other = identity.other;
+    if (identity.passwordSignIn) el('sign-out').onclick = async event => {
+      event.preventDefault();
+      if ((dirty || el<HTMLDialogElement>('composer').open) && !confirm('Sign out and discard your unsaved changes?')) return;
+      try {
+        const response = await fetch('/us/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        if (!response.ok) throw new Error('Could not sign out. Please try again.');
+        dirty = false; el<HTMLDialogElement>('composer').close(); window.location.replace('/us/login/');
+      } catch (error) { notice(errorMessage(error)); }
+    };
     if (identity.preview) { el('sign-out').hidden = true; el('preview-banner').hidden = false; el<HTMLAnchorElement>('preview-switch').href = `?previewPerson=${identity.previewPerson === 'you' ? 'other' : 'you'}`; el('preview-switch').textContent = identity.previewPerson === 'you' ? 'Preview as your person' : 'Preview as you'; }
     await loadLetters(); ready = true;
     button('compose').disabled = false; button('refresh-game').disabled = false;

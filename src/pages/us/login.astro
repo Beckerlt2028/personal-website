@@ -1,0 +1,52 @@
+---
+import '../../styles/us.css';
+import '../../styles/us-login.css';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#742941" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Come on in · Just us</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="topbar"><a class="wordmark" href="/us/">Just us<span aria-hidden="true">.</span></a><span class="private-label">A place for two</span></header>
+    <main id="main" class="login-layout">
+      <section class="login-intro" aria-labelledby="welcome-title">
+        <p class="eyebrow">Same us. Different places.</p>
+        <h1 id="welcome-title">A little closer.</h1>
+        <p>Your letters, our next game, and a place to meet in the middle.</p>
+        <div class="envelope-art" aria-hidden="true"><span>♡</span></div>
+        <p class="intro-footnote">Something good is waiting for you.</p>
+      </section>
+      <section class="login-card" aria-labelledby="login-title">
+        <p class="eyebrow">Welcome home</p>
+        <h2 id="login-title">Come on in.</h2>
+        <p id="login-description" class="login-description">Sign in to our little corner of the world.</p>
+        <form id="login-form" method="post" action="/us/auth/login">
+          <label for="email">Your email</label>
+          <input id="email" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="254" required />
+          <div id="password-field">
+            <label for="password">Password</label>
+            <div class="password-input"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required /><button id="show-password" type="button" aria-label="Show password" aria-pressed="false">Show</button></div>
+            <p id="password-help" class="hint" hidden>At least 12 characters. A few memorable words work well.</p>
+          </div>
+          <label id="remember-label" class="remember"><input id="remember" name="remember" type="checkbox" checked /> Keep me signed in for 30 days</label>
+          <p id="login-message" role="status" aria-live="polite" tabindex="-1"></p>
+          <button id="login-submit" type="submit" class="primary login-submit">Sign in</button>
+        </form>
+        <button id="resend-verification" class="quiet" hidden>Resend verification email</button>
+        <div class="login-links"><button id="forgot-password" class="text-button">Forgot password?</button><button id="create-account" class="text-button">First time? Set up your password</button><button id="back-to-login" class="text-button" hidden>Back to sign in</button></div>
+        <p class="login-footnote">Just for our two email addresses.</p>
+        <noscript><p>Please enable JavaScript to use the sign-in form.</p></noscript>
+      </section>
+    </main>
+    <footer>A place to come back to.<span aria-hidden="true">♡</span></footer>
+    <script src="../../scripts/us-login.ts"></script>
+  </body>
+</html>

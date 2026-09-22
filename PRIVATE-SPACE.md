@@ -1,75 +1,68 @@
 # Just us
 
-An unlisted `/us/` page for two people, added alongside the existing Astro homepage.
+A private `/us/` space alongside the existing Astro homepage, with open-when letters and a shared two-player tile-rummy table.
 
-## What is implemented
+## Password sign-in
 
-- Open-when letters: write drafts, reopen and edit drafts, seal and share, read, and record the first opening. Drafts are visible only to their author. Shared letters are immutable in this first version.
-- One shared, persistent two-player tile-rummy table. Players join from separate devices, take turns, rearrange sets, draw, finish a match, and start a rematch. The browser refreshes the table every five seconds while it is visible. Each accepted turn is saved; unfinished moves remain in memory on that screen.
-- House rules: 104 numbered tiles, no jokers or timer, a 30-point initial meld, runs/groups, and lowest remaining total if both players pass after the pile empties. This is a first tile-rummy variant, not the full Rummikub ruleset.
-- A Cloudflare Worker checks the Access JWT signature, issuer, audience, expiry, application token type, and two-email allowlist before serving the private route or its API.
-- D1 stores letters and games. Neither is embedded in the HTML, JavaScript, repository, or browser local storage. Server responses omit opponents' racks and the draw pile. Saved versions prevent stale edits or turns from overwriting newer ones.
+The Worker uses Firebase Authentication when `AUTH_MODE` is `firebase` in `wrangler.jsonc`. The login page at `/us/login/` supports email/password autofill, first-time password setup, email verification, password-reset emails, and a 30-day Remember me option. Only the two email addresses configured in the private `ACCESS_ALLOWED_EMAILS` secret are admitted. Both users must verify their email before any private data is accessible. The existing letter/game ownership continues to use those same email addresses.
 
-## Current deployment status
+Firebase handles password storage and verification. Passwords are never persisted by the Worker or placed in GitHub. The browser receives a random, host-only `Secure`, `HttpOnly`, `SameSite=Lax` cookie; only its SHA-256 hash is stored in D1. Firebase tokens are encrypted with AES-GCM under `SESSION_ENCRYPTION_KEY`, with the session hash bound as authenticated context. Tokens stay on the server. No authentication tokens or personal content go in browser local storage.
 
-Deployed at **https://lukastbecker.com/us/** on the existing `personal-website` Cloudflare Worker. Cloudflare Access protects the private path on both the apex and `www` domains. The `US_DB` binding stores letters and saved games in the `just-us` D1 database. The access list and token-verification settings are Worker secrets.
+Remembered sessions have an absolute 30-day limit. Without Remember me, the cookie is a browser-session cookie with a server-side 24-hour limit. Firebase tokens refresh automatically while the session remains valid. Online account checks reject disabled/deleted users, changed emails and revoked passwords. Temporary provider failures deny access without unnecessarily deleting a valid session. Sign-out deletes the server session immediately. Visiting `www.lukastbecker.com/us/` redirects to the apex domain to keep one consistent login.
 
-`wrangler.jsonc` is the actual deployment configuration. It contains resource identifiers and public domains, but no credentials or private email list. The GitHub repository remains public at the owner's request. `wrangler.us.example.jsonc` is a reusable setup reference, not the active configuration.
+## Features
 
-The existing homepage and its navigation are unchanged; `/us/` is reached by a bookmark or direct URL. Hiding the link and excluding search engines are conveniences. Access verification and authorization protect the data.
+- Letters: author-only drafts, editing drafts, sealing/sharing, recipient reading, and first-open status. Shared letters are immutable in this version.
+- Tile rummy: one persistent two-player table, joining from separate devices, saved turns, table rearrangements and rematches. The visible game refreshes every five seconds. Unsubmitted moves remain only on the current screen.
+- House rules: 104 numbered tiles, no jokers or timer, 30-point initial meld, runs/groups, and lowest remaining total after both players pass with an empty pile. This is not the full Rummikub ruleset.
+- Each private API validates authorization and request origin. Responses omit the opponent's rack and the draw pile; saved versions prevent stale turns/edits from overwriting newer ones.
 
-## Local review
+## Hosting and private settings
 
-Node.js 22.13+ is needed for the disposable SQLite preview and tests (the installed Node 26 works).
+The existing `personal-website` Cloudflare Worker serves `lukastbecker.com` and `www.lukastbecker.com`. The `US_DB` binding is the existing `just-us` D1 database. Letters and games remain there. `migrations/0002_password_sessions.sql` adds separate session and login-attempt tables without modifying the content tables.
 
-1. `npm run build`
-2. `npm run test:us`
-3. `npm run preview:us`
-4. Open `http://127.0.0.1:4321/us/` in your browser.
+Runtime secrets:
 
-The preview uses **sample accounts and an in-memory database**, binds only to `127.0.0.1`, validates its Host header, and is not part of the production Worker. The yellow banner switches between the two sample people. Start a game as one person, switch to the other and join, then switch back to take a turn. Write a draft, switch accounts to verify it is invisible, switch back to share it, and open it from the other account.
+- `ACCESS_ALLOWED_EMAILS`: exactly two comma-separated email addresses.
+- `FIREBASE_API_KEY`: the Firebase project's web API key, held on the server for this integration.
+- `FIREBASE_PROJECT_ID`: the Firebase project ID.
+- `SESSION_ENCRYPTION_KEY`: 32 cryptographically random bytes encoded as 64 lowercase hexadecimal characters. Keep this stable across deployments; changing it signs everyone out.
 
-Do not use real personal letters in this preview. All preview data disappears when it stops. Standard `npm run dev` serves only the static shell; the API is not available through Astro alone.
+The old `ACCESS_ISSUER` and `ACCESS_AUD` secrets may be retained for rollback. They are ignored in Firebase mode. Missing Firebase configuration fails closed and does not silently fall back to the old sign-in method.
 
-## Deployment and maintenance
+Firebase settings: Email/Password enabled; passwordless email-link sign-in disabled; `lukastbecker.com` authorized for email-action return links; password policy requires 12–256 characters. Verification and reset emails use Firebase's hosted action pages, then return to `/us/login/`. Users choose their own passwords through the site. Never create or put their passwords in code, command history, or setup documentation.
 
-The existing GitHub integration builds `main` with `npm run build` and deploys with `npx wrangler deploy`. The checked-in `wrangler.jsonc` makes future builds include the server entry point, protected-path routing, existing public domains, and database binding. Keep this configuration with the source when pushing updates.
+## Deployment
 
-For a manual deployment from this folder, run `npm run build`, `npm run test:us`, and `npx wrangler deploy`. Use the existing Cloudflare account. Apply new database migrations with `npx wrangler d1 migrations apply just-us --remote` after reviewing them. Existing Worker secrets are retained across deployments; never replace them with public build variables.
+The existing GitHub integration builds `main` with `npm run build` and deploys using `npx wrangler deploy`. Keep the checked-in `wrangler.jsonc`, including `AUTH_MODE`, `server/worker.mjs`, `ASSETS`, `US_DB`, and `assets.run_worker_first: ["/us", "/us/*"]`.
 
-The following records how the private infrastructure is configured, and how to recreate it if needed.
+For manual updates:
 
-Use the existing Worker and domain. Inspect its current settings before merging the example so existing routes and bindings are retained.
+1. Run `npm run test:us` and `npm run build`.
+2. Review and apply new migrations with `npx wrangler d1 migrations apply just-us --remote`.
+3. Keep existing runtime secrets and deploy with `npx wrangler deploy`.
+4. Verify signed-out HTML redirects to `/us/login/`, private APIs return 401, login succeeds only for verified allowed users, and sign-out revokes the session.
 
-1. Create a D1 database for this space, bind it as `US_DB`, and apply `migrations/0001_us.sql`. Keep development/preview databases separate from production.
-2. In Cloudflare Zero Trust, create a self-hosted Access application covering **both** `lukastbecker.com/us` and `lukastbecker.com/us/*`. Cover any other hostname that serves this path, including `www` if used. Use an Allow policy for exactly the two email addresses supplied privately by the owner. Enable email one-time PIN if appropriate. Do not use an Everyone or Bypass policy.
-3. Save the Access team origin as the Worker secret `ACCESS_ISSUER` (format: `https://TEAM.cloudflareaccess.com`), the application's audience tag as `ACCESS_AUD`, and the two comma-separated email addresses as `ACCESS_ALLOWED_EMAILS`. Do not put their actual values in tracked configuration or source.
-4. Use the checked-in `wrangler.jsonc`: the entry point is `server/worker.mjs`, the Astro `dist` directory is bound as `ASSETS`, and `assets.run_worker_first` is `["/us", "/us/*"]`. This is essential: static assets must not bypass the Worker on those paths. Both current custom domains are retained.
-5. Build and deploy using that configuration. Never upload personal content or secret values to GitHub. If a future change uses a separate preview environment, give it a separate database and access policy.
-6. Protect or disable the Worker's `workers.dev` and preview URLs as applicable. The Worker independently rejects requests without a valid Access token, including requests to these alternate hostnames. A plain static deployment will not have this protection and must not be represented as private.
+The old Cloudflare Access application is retained as `Just us — legacy Access` on `/us-legacy-access` on both domains for rollback. The active `/us` paths now open the password login directly. The Worker is the authorization boundary in Firebase mode, including on alternate Worker URLs. Do not roll back to a plain static site. To restore legacy Access mode, restore the Cloudflare Access policies before setting `AUTH_MODE` away from `firebase`.
 
-### Online checks
+## Local review and tests
 
-- In a signed-out browser, `/us`, `/us/`, `/us/index.html`, and `/us/api/letters` require sign-in or deny access. Test alternate hostnames and preview URLs too.
-- Both allowed people can sign in. An unrelated account is denied.
-- A draft cannot be fetched by the other person, even if its ID is known. Shared letters are readable by the recipient; opening updates its status.
-- Two separate browser sessions can join and play a game, and refreshing or reopening preserves completed turns. Opponent racks do not appear in network responses.
-- Sign out and confirm protected requests are denied. The public homepage still loads signed out.
+Requires Node.js 22.13+ for the disposable SQLite adapter (installed Node 26 works).
 
-## GitHub visibility
+- `npm run build`
+- `npm run test:us`
+- `npm run preview:us`, then open `http://127.0.0.1:4321/us/` or `/us/login/`.
 
-The existing repository is public. If these changes are pushed there, the feature's existence, route, layout, and code will be visible. GitHub does not provide private individual files inside a public repository. The actual letters and game data stay in D1; access-list values stay in Worker secrets.
+The preview uses sample people and an in-memory database, binds only to `127.0.0.1`, validates its Host header, and is never imported by the production Worker. Previewing `/us/login/` shows the page; password endpoints are tested separately with a mocked Firebase service and the production Worker handler. Do not enter real passwords in the local sample preview. Standard Astro dev serves the static shell, without the private API.
 
-To hide the implementation too, make the repository private or move the private application into a separate private repository and connect it to its own Worker. Review Cloudflare's GitHub permissions and build configuration when doing that. Changing visibility does not remove copies others may already have made.
+Tests cover private letter ownership, sharing/opening, stale edits/turns, hidden game state, valid sets, first melds, board preservation and wins. Password tests cover opaque/encrypted remembered sessions, browser-session cookies, token refresh without extending expiry, sign-out revocation, unverified/unknown users, request origins, rate limiting, disabled accounts, changed emails, revocation, temporary outages, canonical domain routing and fail-closed configuration. The original Access signature-validation tests remain for rollback support. The build also checks that every private-page script is external and compatible with the production Content Security Policy; `vite.build.assetsInlineLimit: 0` prevents automatic script inlining.
 
-## Verification
+Live verification requires each person to create their own password, verify their email once, then sign in. A real 30-day elapsed-time test is not practical during setup; session expiry and refresh behavior are exercised with controlled tests.
 
-`npm run test:us` covers draft ownership, sharing/opening, stale edits, request-origin checks, hidden game state, stale moves, set validation, first melds, board preservation, winning, and fail-closed Access validation using real RSA signatures. The Astro production build also passes. Browser checks confirmed drafting, author-only draft visibility, editing and sharing, recipient reading and opened status, game creation/joining, tile selection and movement, rejected invalid plays, resetting the rack, drawing, and advancing the turn. The narrow browser layout was visually checked without horizontal overflow; a requested phone-width override was not honored by the preview browser, so an actual phone check remains advisable.
+## GitHub visibility and future additions
 
-Live signed-out checks confirm the public homepage returns 200, private paths on both custom domains redirect to Access, and private paths on the alternate `workers.dev` hostname return 401 with `private, no-store`. The app is hidden from the Access App Launcher. Email one-time PIN is enabled, with an Allow policy for exactly the two privately supplied email addresses. Cloudflare Zero Trust Free was activated by the owner. A live allowed-email sign-in successfully loaded the letter box and saved-game endpoint. Sign-out was verified to clear the session and require sign-in again. Two-person game behavior was checked using the disposable local sample accounts without placing sample letters or games into the live database.
+The repository remains public at the owner's request. The feature's code, route and appearance are visible there; letters, games, session data, access-list values and secret keys are excluded. The page is unlisted in public navigation and marked noindex; those conveniences do not replace authorization.
 
-## Adding more later
+Private page: `src/pages/us/index.astro`. Login: `src/pages/us/login.astro`, `src/scripts/us-login.ts`, `src/styles/us-login.css`. Password authentication: `server/password-auth.mjs`. Worker routing: `server/worker.mjs`. Private API: `server/api.mjs`. Game rules: `server/game.mjs`. Add new tables with new migrations, and keep every private read/write behind the same authorization checks.
 
-The private page uses `src/pages/us/index.astro`, styles in `src/styles/us.css`, and browser behavior in `src/scripts/us.ts`. Server authorization lives in `server/auth.mjs`; API endpoints in `server/api.mjs`; game rules in `server/game.mjs`. Add new database tables through new migrations. Keep all private reads/writes behind the same Worker authorization, and validate any new actions on the server.
-
-References: [Cloudflare Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/), [Worker assets and routing](https://developers.cloudflare.com/workers/static-assets/binding/), [D1 prepared statements](https://developers.cloudflare.com/d1/worker-api/prepared-statements/).
+References: [Firebase Auth REST API](https://firebase.google.com/docs/reference/rest/auth), [Worker assets and routing](https://developers.cloudflare.com/workers/static-assets/binding/), [D1 prepared statements](https://developers.cloudflare.com/d1/worker-api/prepared-statements/).

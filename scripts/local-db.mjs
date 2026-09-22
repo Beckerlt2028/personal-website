@@ -1,9 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 // A small D1-compatible adapter, used only by tests and the disposable local preview.
 export function localDb() {
   const sqlite = new DatabaseSync(':memory:');
-  sqlite.exec(readFileSync(new URL('../migrations/0001_us.sql', import.meta.url), 'utf8'));
+  const migrations = new URL('../migrations/', import.meta.url);
+  for (const file of readdirSync(migrations).filter(name => name.endsWith('.sql')).sort()) {
+    sqlite.exec(readFileSync(new URL(file, migrations), 'utf8'));
+  }
   return {
     close: () => sqlite.close(),
     prepare(sql) {

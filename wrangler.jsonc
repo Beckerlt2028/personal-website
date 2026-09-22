@@ -6,6 +6,7 @@
   "compatibility_date": "2026-09-15",
   "workers_dev": true,
   "preview_urls": true,
+  "vars": { "AUTH_MODE": "firebase" },
   "routes": [
     { "pattern": "lukastbecker.com", "custom_domain": true },
     { "pattern": "www.lukastbecker.com", "custom_domain": true }
